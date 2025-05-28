@@ -34,5 +34,6 @@ class PIRClient:
 if __name__ == '__main__':
     client = PIRClient()
     target_index = input("请输入要检索的数据索引 (0-4): ")
+    target_index = int(target_index)
     result = client.retrieve_data(target_index)
     print(f"Retrieved data from index {target_index}: {result}")
