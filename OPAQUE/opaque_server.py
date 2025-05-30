@@ -6,6 +6,11 @@ import os
 import secrets
 from collections import defaultdict
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+                    format="[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
+                    datefmt='%Y-%m-%d  %H:%M:%S %a')
 app = Flask(__name__)
 
 # 模拟用户数据库
@@ -116,7 +121,7 @@ def login_finish():
 
     # 派生会话密钥
     session_key = common.derive_keys(shared_secret, b"OPAQUE_SESSION_KEY")[:32]
-    print(f"Session key: {session_key.hex()}")
+    logging.info(f"Session key: {session_key.hex()}")
 
     # 验证客户端认证消息
     client_auth_msg = base64.b64decode(data['auth_message'])

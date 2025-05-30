@@ -7,6 +7,11 @@ import os
 from cryptography.hazmat.primitives.asymmetric import x25519
 import secrets
 import json
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+                    format="[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
+                    datefmt='%Y-%m-%d  %H:%M:%S %a')
 
 SERVER_URL = "https://localhost:5000"
 
@@ -102,15 +107,15 @@ class OPAQUEClient:
         key_material = common.derive_keys(self.oprf_output, b"OPAQUE_ENVELOPE_KEY")
         decryption_key = key_material[:32]
         mac_key = key_material[32:48]
-        print("[DEBUG] Session ID:", self.session_id)
-        print("[DEBUG] Received evaluated_element:", evaluated_element.hex())
-        print("[DEBUG] Encrypted envelope:", encrypted_envelope.hex())
+        logging.info("[DEBUG] Session ID:", self.session_id)
+        logging.info("[DEBUG] Received evaluated_element:", evaluated_element.hex())
+        logging.info("[DEBUG] Encrypted envelope:", encrypted_envelope.hex())
         # 解密信封获取私钥
         try:
             envelope_data = common.decrypt_aes_gcm(decryption_key, encrypted_envelope)
         except Exception as e:
             raise Exception("Failed to decrypt envelope: " + str(e))
-        print("[DEBUG] Decrypted envelope length:", len(envelope_data))
+        logging.info("[DEBUG] Decrypted envelope length:", len(envelope_data))
 
         private_key_bytes = envelope_data[:32]
         self.private_key = x25519.X25519PrivateKey.from_private_bytes(private_key_bytes)
@@ -174,8 +179,8 @@ def main():
         print("Logging in...")
         try:
             session_key = client.login()
-            print("\nAuthentication successful!")
-            print(f"Session key: {session_key.hex()}")
+            logging.info("\nAuthentication successful!")
+            logging.info(f"Session key: {session_key.hex()}")
         except Exception as e:
             print(f"Authentication failed: {str(e)}")
     else:
