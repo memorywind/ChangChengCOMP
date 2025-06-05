@@ -45,6 +45,7 @@ def register_user():
         'public_key': data['public_key'],
         'envelope': data['envelope']
     }
+    logging.info(f'User {username} registered successfully.')
     return jsonify({"status": "success"})
 
 @app.route('/login/init', methods=['POST'])
@@ -90,7 +91,7 @@ def login_finish():
     session_data = users_db[username]['session']
     if session_data['session_id'] != session_id:
         return jsonify({"error": "Session mismatch"}), 400
-
+    logging.info(f'login_finish called for user: {username}, session_id: {session_id}')
     client_public_key = common.deserialize_public_key(
         base64.b64decode(data['client_public_key'])
     )
@@ -99,14 +100,16 @@ def login_finish():
     server_private_key = session_data['server_private_key']
     shared_secret = server_private_key.exchange(client_public_key)
     session_data['shared_secret'] = shared_secret
-
+    logging.info(f'Shared secret: {shared_secret.hex()}')
     session_key = common.derive_keys(shared_secret, b"OPAQUE_SESSION_KEY")[:32]
     logging.info(f"Session key: {session_key.hex()}")
 
     command = b"run update"
+    logging.info(f'Command to encrypt: {command}')
     ciphertext = common.encrypt_aes_gcm(session_key, command)
+    logging.info(f'Commands Ciphertext: {ciphertext.hex()}')
     auth_message = hmac.new(session_key, ciphertext, hashlib.sha256).digest()
-
+    logging.info(f'Auth message: {auth_message.hex()}')
     del users_db[username]['session']
 
     return jsonify({

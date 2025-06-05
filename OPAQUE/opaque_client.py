@@ -113,6 +113,7 @@ class OPAQUEClient:
         client_private_key = x25519.X25519PrivateKey.generate()
         client_public_key = client_private_key.public_key()
         shared_secret = client_private_key.exchange(server_public_key)
+        logging.info(f'Shared secret: {shared_secret.hex()}')
         session_key = common.derive_keys(shared_secret, b"OPAQUE_SESSION_KEY")[:32]
         self.session_key = session_key
 
@@ -134,8 +135,9 @@ class OPAQUEClient:
             raise Exception("Authentication failed")
 
         ciphertext = base64.b64decode(response["ciphertext"])
+        logging.info(f"Received ciphertext: {ciphertext.hex()}")
         received_hmac = base64.b64decode(response["auth_message"])
-
+        logging.info(f"Received HMAC: {received_hmac.hex()}")
         calc_hmac = hmac.new(session_key, ciphertext, hashlib.sha256).digest()
         if not hmac.compare_digest(received_hmac, calc_hmac):
             raise Exception("HMAC verification failed")
